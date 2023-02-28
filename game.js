@@ -30,6 +30,7 @@
     var letterbox3;
     var lettertallyText;
     var isClicking = false;
+    var isSwiping = false
     var swipeDirection;
     var currentLetter = 'letterbox1'
 
@@ -89,14 +90,14 @@
         letter2 = this.physics.add.sprite(650,520, 'letter2').setAlpha(0)
         letter3 = this.physics.add.image(650,520, 'letter3').setAlpha(0)
 
-        stars = this.physics.add.staticGroup();
-        stars.create(100, 300, 'star')
-        stars.create(200, 400, 'star')
-        stars.create(300, 300, 'star')
-        stars.create(400, 400, 'star')
-        stars.create(500, 300, 'star')
-        stars.create(600, 400, 'star')
-        stars.create(700, 300, 'star')
+        // stars = this.physics.add.staticGroup();
+        // stars.create(100, 300, 'star')
+        // stars.create(200, 400, 'star')
+        // stars.create(300, 300, 'star')
+        // stars.create(400, 400, 'star')
+        // stars.create(500, 300, 'star')
+        // stars.create(600, 400, 'star')
+        // stars.create(700, 300, 'star')
 
         player = this.physics.add.sprite(400, 50, 'postalworker');
         player.setBounce(0);
@@ -136,7 +137,7 @@
 
         cursors = this.input.keyboard.createCursorKeys();
 
-        lettertallyText = this.add.text(16, 16, 'testC', { fontSize: '32px', fill: '#fff' });
+        lettertallyText = this.add.text(16, 16, 'DELIVER THE LETTERS TO THE CORRECT HOUSE', { fontSize: '32px', fill: '#fff' });
         message = this.add.text(16, 56, '', { fontSize: '32px', fill: '#fff' });
 
         this.physics.add.collider(player, barriers);
@@ -145,16 +146,48 @@
         this.physics.add.overlap(player, letterbox2, deliverLetter, null, this);
         this.physics.add.overlap(player, letterbox3, deliverLetter, null, this);
 
+        // this moves the player instantly to whereever has been clicked
+
+
+
+
+
     }
 
     function update ()
     {
 
 
+// This moves the player instantly to the pointer
 
+    if(!this.input.activePointer.isDown && isClicking == true) {
+        player.setData("positionY", this.input.activePointer.position.y);
+        player.setData("positionX", this.input.activePointer.position.x);
+        player.anims.play('up', true);
+        isClicking = false;
+    } else if(this.input.activePointer.isDown && isClicking == false) {
+        isClicking = true;
+    }
 
+    if(Math.abs(player.y - player.getData("positionY")) <= 10) {
+        player.y = player.getData("positionY");
+    } else if(player.y < player.getData("positionY")) {
+        player.y += 5; 
+    } else if(player.y > player.getData("positionY")) {
+        player.y -= 5;
+    }
 
+    if(Math.abs(player.x - player.getData("positionX")) <= 10) {
+        player.x = player.getData("positionX");
+    } else if(player.x < player.getData("positionX")) {
+        player.x += 5;
+    } else if(player.x > player.getData("positionX")) {
+        player.x -= 5;
+    }
+    
 
+         
+        
 
   
 
@@ -191,69 +224,67 @@
             player.anims.play('turn');
         }
 
-        // if (cursors.up.isDown && player.body.touching.down)
-        // {
-        //     player.setVelocityY(-430);
-        // }
+
+
+
     }
+    
 
-
-    function deliverLetter(player, letterbox, stars){
-        if( letterbox.name == currentLetter){
-            lettertally -= 1;
-            message.setText('Well Done! You delivered a letter!')
-            lettertallyText.setText('Letters remaining: ' + lettertally);
-            
-            if(letterbox.name=='letterbox1'){
-                letter1.setAlpha(0)
-                letter2.setAlpha(1)
-            } else if (letterbox.name=='letterbox2'){
-                letter2.setAlpha(0)
-                letter3.setAlpha(1)
-            } else if (letterbox.name=='letterbox3'){
-                letter3.setAlpha(0)
-                message.setText('TASK COMPLETE')
-            }
-
-        } else {
-            message.setText('OOPS! Wrong house! Try again')
-            
-        }
-        console.log('letterbox.name: '+ letterbox.name)
-        this.tweens.add({
-            targets: letterbox, 
-            duration: 200, 
-            scaleX: 1.2, 
-            scaleY: 1.2, 
-            yoyo: true, 
-        });
-        this.tweens.add({
-            targets: player, // on the player 
-            duration: 200, // for 200ms 
-            scaleX: 1.2, // that scale vertically by 20% 
-            scaleY: 1.2, // and scale horizontally by 20% 
-            yoyo: true, // at the end, go back to original scale 
-        });
-        this.tweens.add({
-            targets: stars,  
-            duration: 200,
-            scaleX: 1.2,  
-            scaleY: 1.2, 
-            yoyo: true,  
-        });
-        letterbox.disableBody(true,false)
-
+    function deliverLetter(player, letterbox){
         
+                   
+            console.log('letterbox.name: '+ letterbox.name)
+            console.log('currentletter: '+ currentLetter)
+            if( letterbox.name == currentLetter){
+                
+                lettertally -= 1;
+                message.setText('Well Done! You delivered a letter!')
+                
+                // lettertallyText.setText('Letters remaining: ' + lettertally);
+                
+                if(letterbox.name=='letterbox1'){
+                    letter1.setAlpha(0)
+                    letter2.setAlpha(1)
+                    currentLetter = 'letterbox2'
+                } else if (letterbox.name=='letterbox2'){
+                    letter2.setAlpha(0)
+                    letter3.setAlpha(1)
+                    currentLetter = 'letterbox3'
+                } else if (letterbox.name=='letterbox3'){
+                    letter3.setAlpha(0)
+                    message.setText('TASK COMPLETE')
+                }
+    
+            } else {
+                message.setText("OOPS! That's " + letterbox.name)
+                
+            }
+            
+            this.tweens.add({
+                targets: letterbox, 
+                duration: 200, 
+                scaleX: 0.65, 
+                scaleY: 0.65, 
+                yoyo: true, 
+            });
+            this.tweens.add({
+                targets: player, // on the player 
+                duration: 200, // for 200ms 
+                scaleX: 1.05, 
+                scaleY: 1.05,
+                yoyo: true, // at the end, go back to original scale 
+            });
+                letterbox.body.enable = false
+                // this enables the letterboxes once the player has moved away
+
+
+                setTimeout(() => {
+                    const notTouching = player.body.touching.none
+                    letterbox.body.enable = true
+                }, 500);
+                        
     }
 
 
-    function hitBomb (player, bomb)
-    {
-        this.physics.pause();
 
-        player.setTint(0xff0000);
 
-        player.anims.play('turn');
-
-        gameOver = true;
-    }
