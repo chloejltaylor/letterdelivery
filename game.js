@@ -40,10 +40,13 @@
     var timedCongratulationsRead
     var congratulationsMessageRead = true
     let isTravellingRight = false
-    let isTravellingLeft = true
+    let isTravellingLeft = false
     let isTravellingUp = false
     let isTravellingDown = false
     let isStandingStill = true
+    let justClicked = false
+    let justClickedX = false
+    let justClickedY = false
 
 
     var game = new Phaser.Game(config);
@@ -130,13 +133,13 @@
         this.anims.create({
             key: 'up',
             frames: this.anims.generateFrameNumbers('postalworker', { start: 13, end: 16 }),
-            frameRate: 20
+            frameRate: 10
         });
 
         this.anims.create({
             key: 'down',
             frames: this.anims.generateFrameNumbers('postalworker', { start: 9, end: 12 }),
-            frameRate: 20
+            frameRate: 10
         });
 
         this.anims.create({
@@ -145,6 +148,8 @@
             frameRate: 10,
             repeat: -1
         });
+
+        // player.play('turn', true)
 
         cursors = this.input.keyboard.createCursorKeys();
 
@@ -170,43 +175,96 @@
     function update ()
     {
 
+//// MOVEMENT ///////
+
+// This makes the arrow keys work
+if(justClicked == false){
+    if (cursors.left.isDown)
+    {
+        player.setVelocityX(-80);
+        player.anims.play('left', true);
+    }
+    else if (cursors.right.isDown)
+    {
+        player.setVelocityX(80);
+        player.anims.play('right', true);
+    }
+    else if (cursors.up.isDown)
+    {
+        player.setVelocityY(-80);
+        player.anims.play('up', true);
+    }
+    else if (cursors.down.isDown)
+    {
+        player.setVelocityY(80);
+        player.anims.play('down', true);
+    }
+    else
+    {
+        player.setVelocityX(0);
+        player.setVelocityY(0);
+        player.anims.play('turn');
+    }
+}
+
 
 // This moves the player instantly to the pointer
 
     if(!this.input.activePointer.isDown && isClicking == true) {
+        justClicked = true
+        justClickedX = true
+        justClickedY = true
         player.setData("positionY", this.input.activePointer.position.y);
         player.setData("positionX", this.input.activePointer.position.x);
-        player.anims.play('up', true);
         isClicking = false;
         cancelTravelDirection()
+        
+        
+        
 
     } else if(this.input.activePointer.isDown && isClicking == false) {
         isClicking = true;
     }
 
-    if(Math.abs(player.y - player.getData("positionY")) <= 10) {
-        player.y = player.getData("positionY");
-    } else if(player.y < player.getData("positionY")) {
-        player.y += 2; 
-        isTravellingDown = true
-    } else if(player.y > player.getData("positionY")) {
-        player.y -= 2;
-        isTravellingUp = true
-    }
+    movePlayerToPointer()
+    function movePlayerToPointer(){
+        if(justClicked==true){
+            console.log(justClicked)
+            showTravelAnimation()
+            if(Math.abs(player.x - player.getData("positionX")) <= 10 ) {
+                player.x = player.getData("positionX");
+                isStandingStill = true
+                justClickedX = false
+            } else if(player.x < player.getData("positionX")) {
+                player.x += 2;
+                isTravellingRight = true
+            } else if(player.x > player.getData("positionX")) {
+                player.x -= 2;
+                isTravellingLeft = true
+                console.log(player.getData("positionY"))
+                console.log(player.y)
+            }
+            if(Math.abs(player.y - player.getData("positionY")) <= 10) {
+                player.y = player.getData("positionY");
+                isStandingStill = true
+                justClickedY = false
+            } else if(player.y < player.getData("positionY")) {
+                player.y += 2; 
+                isTravellingDown = true
+            } else if(player.y > player.getData("positionY")) {
+                player.y -= 2;
+                isTravellingUp = true
+            } 
 
-    if(Math.abs(player.x - player.getData("positionX")) <= 10) {
-        player.x = player.getData("positionX");
-    } else if(player.x < player.getData("positionX")) {
-        player.x += 2;
-        isTravellingRight = true
-    } else if(player.x > player.getData("positionX")) {
-        player.x -= 2;
-        isTravellingLeft = true
-    }
+            if(justClickedX == false && justClickedY == false){
+                justClicked = false
+            }
+        }
     
 
-         
         
+    }
+
     function cancelTravelDirection(){
         isTravellingLeft = false
         isTravellingRight = false
@@ -214,60 +272,39 @@
         isTravellingDown = false
         isStandingStill = false
     }
-  
-    // if (isTravellingLeft == true)
-    // {
-        // player.anims.play('left', true);
-        // console.log("travelling left")
-    // }
-    // else 
-    // if (isTravellingRight == true)
-    // {
-    //     player.anims.play('right', true);
-    //     console.log("travelling right")
-    // }
-    // else if (isTravellingUp == true)
-    // {
-    //     player.anims.play('up', true);
-    //     console.log("travelling up")
-    // }
-    // else if (isTravellingDown == true)
-    // {
-    //     player.anims.play('down', true);
-    //     console.log("travelling down")
-    // }
-    // else
-    // {
-    //     player.anims.play('turn');
-    // }
 
-
-        if (cursors.left.isDown)
+    function showTravelAnimation(){
+        console.log("TRAVEL ANIMATION ACTIVATED")
+        if (isTravellingLeft == true)
         {
-            player.setVelocityX(-160);
             player.anims.play('left', true);
+            console.log("travelling left")
         }
-        else if (cursors.right.isDown)
+        else 
+        if (isTravellingRight == true)
         {
-            player.setVelocityX(160);
             player.anims.play('right', true);
+            console.log("travelling right")
         }
-        else if (cursors.up.isDown)
+        else if (isTravellingUp == true)
         {
-            player.setVelocityY(-160);
             player.anims.play('up', true);
+            console.log("travelling up")
         }
-        else if (cursors.down.isDown)
+        else if (isTravellingDown == true)
         {
-            player.setVelocityY(160);
             player.anims.play('down', true);
+            console.log("travelling down")
         }
         else
         {
-            player.setVelocityX(0);
-            player.setVelocityY(0);
             player.anims.play('turn');
         }
+    }
+
+
+
+
 
 
 
